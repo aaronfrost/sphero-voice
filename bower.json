@@ -1,0 +1,21 @@
+{
+  "name": "sphero-voice",
+  "version": "0.0.1",
+  "homepage": "https://github.com/aaronfrost/sphero-voice",
+  "authors": [
+    "Aaron-Frost <frost@domo.com>"
+  ],
+  "description": "Client side piece for my sphero-voice app",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "lodash": "~3.9.0",
+    "jquery": "~2.1.4"
+  }
+}

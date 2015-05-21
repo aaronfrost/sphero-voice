@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+<body style="background-image: url(background.jpg);">
+<div class="full-page" style="  position: absolute; background-color: white; top: 0px; bottom: 0px; left: 0px; right: 0px; opacity: .6; z-index: -1;"></div>
+<button id="micbtn" style="  position: absolute; top: 48%; left: 45%;">CLICK AND SPEAK</button>
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/bower/jquery/dist/jquery.min.js"></script>
+<script src="js/bower/lodash/lodash.min.js"></script>
+<script>
+  var socket = io();
+  var started = false;
+  var listening = false;
+  var colors = ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'white'];
+  var lastColor;
+
+  var controls = ['forward', 'left', 'right'];
+
+
+  var recognition = new webkitSpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onstart = function () {
+    console.log('starting');
+  };
+  recognition.onresult = function (event) {
+    if(!listening) return;
+
+    var results = _.chain(event.results)
+        .map(function(res){
+          if(res.isFinal) console.log(res);
+          return _.map(res, function(r){return r;});
+        })
+        .flatten()
+        .value();
+    var text = _.map(results, function(res){
+      return res.transcript;
+    })
+        .join(' ')
+        .replace(/\s{2,2000}/g," ")
+        .toLowerCase()
+        .split(' ');
+
+    console.log(text);
+    var color;
+    _.each(text, function(res){
+      if(colors.indexOf(res) >= 0){
+        color = res;
+      }
+    });
+    if(color && color != lastColor){
+      console.log('emit color', color);
+      socket.emit('color', color);
+      lastColor = color;
+    }
+
+    var control;
+    _.each(text, function(res){
+      if(controls.indexOf(res) >= 0){
+        control = res;
+      }
+    });
+    if(control){
+      console.log('emit control', control);
+      socket.emit('control', control);
+      lastColor = control;
+    }
+  };
+  recognition.onerror = function (event) {
+
+  };
+  recognition.onend = function () {
+    console.log('ending');
+    started = false;
+  };
+
+  $('#micbtn').on('mousedown', function(e){
+    if(!started){
+      recognition.start();
+      started = true;
+      setTimeout(function(){
+        recognition.stop();
+      }, 120000);
+    }
+    listening = true;
+  }).on('mouseup', function(e){
+    listening = false;
+  });
+
+  var emitControl = _.throttle(function(){
+
+  }, 1000);
+</script>
+</body>
+</html>
